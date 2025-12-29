@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
+import { useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useCRUDAudit } from "@/hooks/useCRUDAudit";
@@ -124,18 +125,47 @@ const AccountTable = ({
   const {
     logDelete
   } = useCRUDAudit();
+  const [searchParams] = useSearchParams();
   const [accounts, setAccounts] = useState<Account[]>([]);
   const [filteredAccounts, setFilteredAccounts] = useState<Account[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState(initialStatus);
-  const [ownerFilter, setOwnerFilter] = useState("all");
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+  
+  // Get owner parameter from URL - "me" means filter by current user
+  const ownerParam = searchParams.get('owner');
+  const [ownerFilter, setOwnerFilter] = useState<string>("all");
   const [tagFilter, setTagFilter] = useState<string | null>(null);
+
+  // Fetch current user ID for "me" filtering
+  useEffect(() => {
+    const fetchCurrentUser = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        setCurrentUserId(user.id);
+        // If owner=me in URL, set the owner filter to current user's ID
+        if (ownerParam === 'me') {
+          setOwnerFilter(user.id);
+        }
+      }
+    };
+    fetchCurrentUser();
+  }, [ownerParam]);
 
   // Sync statusFilter when initialStatus prop changes (from URL)
   useEffect(() => {
     setStatusFilter(initialStatus);
   }, [initialStatus]);
+
+  // Sync ownerFilter when ownerParam changes
+  useEffect(() => {
+    if (ownerParam === 'me' && currentUserId) {
+      setOwnerFilter(currentUserId);
+    } else if (!ownerParam) {
+      setOwnerFilter('all');
+    }
+  }, [ownerParam, currentUserId]);
   const [editingAccount, setEditingAccount] = useState<Account | null>(null);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [accountToDelete, setAccountToDelete] = useState<Account | null>(null);

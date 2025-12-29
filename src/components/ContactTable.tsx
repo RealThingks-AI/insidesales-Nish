@@ -96,7 +96,26 @@ export const ContactTable = ({
     const urlSource = searchParams.get('source');
     return urlSource || "all";
   });
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+  
+  // Get owner parameter from URL - "me" means filter by current user
+  const ownerParam = searchParams.get('owner');
   const [ownerFilter, setOwnerFilter] = useState<string>("all");
+
+  // Fetch current user ID for "me" filtering
+  useEffect(() => {
+    const fetchCurrentUser = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        setCurrentUserId(user.id);
+        // If owner=me in URL, set the owner filter to current user's ID
+        if (ownerParam === 'me') {
+          setOwnerFilter(user.id);
+        }
+      }
+    };
+    fetchCurrentUser();
+  }, [ownerParam]);
 
   // Sync sourceFilter when URL changes
   useEffect(() => {
@@ -105,6 +124,15 @@ export const ContactTable = ({
       setSourceFilter(urlSource);
     }
   }, [searchParams]);
+
+  // Sync ownerFilter when ownerParam changes
+  useEffect(() => {
+    if (ownerParam === 'me' && currentUserId) {
+      setOwnerFilter(currentUserId);
+    } else if (!ownerParam) {
+      setOwnerFilter('all');
+    }
+  }, [ownerParam, currentUserId]);
 
   console.log('ContactTable: Rendering with contacts count:', contacts.length);
 
