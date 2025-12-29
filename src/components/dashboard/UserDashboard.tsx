@@ -108,20 +108,12 @@ const UserDashboard = () => {
   useEffect(() => {
     const updateWidth = () => {
       if (containerRef.current) {
-        // Use full container width without extra padding subtraction
-        setContainerWidth(containerRef.current.offsetWidth);
+        setContainerWidth(containerRef.current.offsetWidth - 48);
       }
     };
     updateWidth();
-    const resizeObserver = new ResizeObserver(updateWidth);
-    if (containerRef.current) {
-      resizeObserver.observe(containerRef.current);
-    }
     window.addEventListener('resize', updateWidth);
-    return () => {
-      window.removeEventListener('resize', updateWidth);
-      resizeObserver.disconnect();
-    };
+    return () => window.removeEventListener('resize', updateWidth);
   }, []);
   
   const { data: userName } = useQuery({
@@ -1313,7 +1305,7 @@ const UserDashboard = () => {
   };
 
   return (
-    <div className="p-6 space-y-8 w-full max-w-full overflow-x-hidden" ref={containerRef}>
+    <div className="p-6 space-y-8" ref={containerRef}>
       {/* Welcome Header */}
       <div className="flex items-center justify-between flex-wrap gap-2">
         <div className="min-w-0 flex-1">
