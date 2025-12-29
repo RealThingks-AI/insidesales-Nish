@@ -108,13 +108,20 @@ const UserDashboard = () => {
   useEffect(() => {
     const updateWidth = () => {
       if (containerRef.current) {
-        // Use full container width for the grid (no subtraction needed)
-        setContainerWidth(containerRef.current.offsetWidth);
+        const width = containerRef.current.getBoundingClientRect().width;
+        setContainerWidth(width > 0 ? width : 1200);
       }
     };
+    
+    // Initial calculation with a small delay to ensure DOM is ready
+    const timeoutId = setTimeout(updateWidth, 50);
     updateWidth();
+    
     window.addEventListener('resize', updateWidth);
-    return () => window.removeEventListener('resize', updateWidth);
+    return () => {
+      window.removeEventListener('resize', updateWidth);
+      clearTimeout(timeoutId);
+    };
   }, []);
   
   const { data: userName } = useQuery({

@@ -31,6 +31,8 @@ interface ResizableDashboardProps {
 
 const COLS = 12;
 const ROW_HEIGHT = 80;
+const MARGIN = 16;
+const CONTAINER_PADDING = 0;
 
 export const ResizableDashboard = ({
   isResizeMode,
@@ -97,12 +99,12 @@ export const ResizableDashboard = ({
       <GridLayout
         className="layout w-full"
         layout={layout}
-        width={Math.max(320, containerWidth)}
+        width={containerWidth > 0 ? containerWidth : 1200}
         gridConfig={{
           cols: COLS,
           rowHeight: ROW_HEIGHT,
-          margin: [16, 16] as const,
-          containerPadding: [0, 0] as const,
+          margin: [MARGIN, MARGIN] as const,
+          containerPadding: [CONTAINER_PADDING, CONTAINER_PADDING] as const,
           maxRows: Infinity,
         }}
         dragConfig={{
@@ -178,10 +180,12 @@ export const ResizableDashboard = ({
       <style>{`
         .dashboard-grid {
           width: 100%;
+          min-width: 100%;
         }
         .dashboard-grid .react-grid-layout {
           min-height: 200px;
           width: 100% !important;
+          min-width: 100% !important;
         }
 
         .dash-item {
